@@ -105,7 +105,7 @@ const LangSwitcher = () => {
 
 const Menu = () => {
   return (
-    <div className="rounded-2xl flex justify-around items-center gap-2 !mt-0 bg-zinc-200 dark:bg-zinc-800 p-2">
+    <div className="z-10 left-2 top-1/2 -translate-y-1/2 absolute rounded-2xl flex flex-col flex-wrap items-center gap-2 bg-zinc-200 dark:bg-zinc-800 p-2 h-full max-h-fit">
       <IconButton
         src={selectionIcon}
         type={toolTypes.SELECTION}
