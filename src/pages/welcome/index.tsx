@@ -38,7 +38,7 @@ const Welcome = () => {
     <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10 bg-zinc-200 dark:bg-zinc-800">
       <ThemeSwitcher className="absolute top-2 right-2" />
       <LangSwitcher className="absolute top-2 left-2" />
-      <div className="w-full max-w-sm md:max-w-3xl">
+      <div className="w-full max-w-sm md:max-w-3xl mt-8 md:mt-0">
         <div className="flex flex-col gap-6">
           <Card className="overflow-hidden">
             <CardContent className="grid md:grid-cols-2 p-2 md:p-4">

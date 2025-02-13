@@ -1,9 +1,10 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { connectToSocket } from "@/socket";
 import Menu from "./components/menu";
+import Canvas from "./components/canvas";
 
 const Room = () => {
   const { roomId } = useParams();
@@ -19,12 +20,11 @@ const Room = () => {
   }, []);
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-muted bg-zinc-200 dark:bg-zinc-800 p-2">
-      <Card className="w-full flex-1">
-        <CardHeader className="flex flex-row justify-center items-center w-full p-2">
+    <div className="flex h-svh flex-col items-center justify-center bg-muted bg-zinc-200 dark:bg-zinc-800 p-2">
+      <Card className="rounded-2xl w-full h-full flex">
+        <CardContent className="relative flex flex-auto overflow-hidden p-0 m-2 md:m-4">
           <Menu />
-        </CardHeader>
-        <CardContent className="flex">
+          <Canvas />
         </CardContent>
       </Card>
     </div>
