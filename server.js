@@ -46,11 +46,6 @@ io.on("connection", (socket) => {
     color: color,
   });
 
-  console.log(`User ${name} connected to room ${roomId}`);
-  console.log(
-    `Room ${roomId} has ${io.sockets.adapter.rooms.get(roomId)?.size} users`
-  );
-
   socket.on("user:cursor-position", (data) => {
     io.to(roomId).emit("user:cursor-position", data);
   });
@@ -60,7 +55,6 @@ io.on("connection", (socket) => {
 
     if (!room || room.size === 0) {
       roomPasswords.delete(roomId);
-      console.log(`Room ${roomId} is now empty`);
     } else {
       io.to(roomId).emit("user:left", {
         userId: socket.id,
@@ -69,8 +63,6 @@ io.on("connection", (socket) => {
         color: color,
       });
     }
-
-    console.log(`User ${name} disconnected from room ${roomId}`);
   });
 });
 

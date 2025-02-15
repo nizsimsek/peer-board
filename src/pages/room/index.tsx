@@ -7,6 +7,7 @@ import Canvas from "./components/canvas";
 import { useSocket } from "@/hooks/useSocket";
 import { UserEvent } from "@/types";
 import { useRandomColor } from "@/hooks/useRandomColor";
+import { useCursorStore } from "@/store/cursors.store";
 
 const Room = () => {
   const { roomId } = useParams();
@@ -15,6 +16,8 @@ const Room = () => {
   const name = searchParams.get("name");
   const navigate = useNavigate();
   const color = useRandomColor();
+  const { updateCursorPosition, removeCursorPosition, clearCursors } =
+    useCursorStore();
 
   useEffect(() => {
     if (!roomId || !password || !name) {
@@ -33,19 +36,50 @@ const Room = () => {
   useEffect(() => {
     if (!socket) return;
 
+    clearCursors();
+
     socket.on("user:joined", (data: UserEvent) => {
-      console.log(`User ${data.name} joined room ${data.roomId}`);
+      if (
+        data.userId !== socket.id &&
+        data.userId !== null &&
+        data.userId !== undefined
+      ) {
+        updateCursorPosition({
+          userId: data.userId,
+          x: data.x,
+          y: data.y,
+          name: data.name,
+          color: data.color,
+        });
+      }
     });
 
     socket.on("user:left", (data: UserEvent) => {
-      console.log(`User ${data.name} left room ${data.roomId}`);
+      removeCursorPosition(data.userId);
+    });
+
+    socket.on("user:cursor-position", (data: UserEvent) => {
+      if (
+        data.userId !== socket.id &&
+        data.userId !== null &&
+        data.userId !== undefined
+      ) {
+        updateCursorPosition({
+          userId: data.userId,
+          x: data.x,
+          y: data.y,
+          name: data.name,
+          color: data.color,
+        });
+      }
     });
 
     return () => {
       socket.off("user:joined");
       socket.off("user:left");
+      socket.off("user:cursor-position");
     };
-  }, [socket]);
+  }, [socket, updateCursorPosition, removeCursorPosition]);
 
   return (
     <div className="flex h-svh flex-col items-center justify-center bg-muted bg-zinc-200 dark:bg-zinc-800 p-2">
@@ -58,7 +92,7 @@ const Room = () => {
       <Card className="rounded-2xl w-full h-full flex">
         <CardContent className="relative flex flex-auto overflow-hidden p-0 m-4">
           <Menu />
-          <Canvas />
+          <Canvas socket={socket} name={name!} color={color!} />
         </CardContent>
       </Card>
     </div>
