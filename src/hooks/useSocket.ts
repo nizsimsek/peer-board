@@ -21,12 +21,10 @@ export const useSocket = ({ roomId, password, name, color }: SocketProps) => {
     });
 
     newSocket.on("connect", () => {
-      console.log("connected to socket");
       setIsConnected(true);
     });
 
     newSocket.on("disconnect", () => {
-      console.log("disconnected from socket");
       setIsConnected(false);
     });
 

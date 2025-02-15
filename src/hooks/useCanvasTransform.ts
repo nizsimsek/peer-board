@@ -1,41 +1,6 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { CANVAS_DIMENSIONS, SCALE_LIMITS } from "@/constants";
 import { Transform, ContainerSize, CanvasSize } from "@/types";
-
-const calculateInitialScale = (
-  container: ContainerSize,
-  canvas: CanvasSize
-): number => {
-  const scaleX = container.width / canvas.width;
-  const scaleY = container.height / canvas.height;
-  return Math.max(scaleX, scaleY);
-};
-
-const calculateCenteredPosition = (
-  container: ContainerSize,
-  canvas: CanvasSize,
-  scale: number
-): Pick<Transform, "x" | "y"> => ({
-  x: (container.width - canvas.width * scale) / 2,
-  y: (container.height - canvas.height * scale) / 2,
-});
-
-const calculateBoundedPosition = (
-  container: ContainerSize,
-  canvas: CanvasSize,
-  scale: number,
-  position: Pick<Transform, "x" | "y">
-): Pick<Transform, "x" | "y"> => {
-  const scaledWidth = canvas.width * scale;
-  const scaledHeight = canvas.height * scale;
-  const minX = container.width - scaledWidth;
-  const minY = container.height - scaledHeight;
-
-  return {
-    x: Math.min(0, Math.max(minX, position.x)),
-    y: Math.min(0, Math.max(minY, position.y)),
-  };
-};
 
 export const useCanvasTransform = (
   canvasRef: React.RefObject<HTMLCanvasElement>
@@ -50,41 +15,68 @@ export const useCanvasTransform = (
     const canvas = canvasRef.current;
     const container = canvas?.parentElement;
 
-    if (!canvas || !container) {
-      return null;
-    }
-
-    return {
-      canvas: {
-        width: CANVAS_DIMENSIONS.width,
-        height: CANVAS_DIMENSIONS.height,
-      },
-      container: {
-        width: container.clientWidth,
-        height: container.clientHeight,
-      },
-    };
+    return canvas && container
+      ? {
+          canvas: {
+            width: CANVAS_DIMENSIONS.width,
+            height: CANVAS_DIMENSIONS.height,
+          },
+          container: {
+            width: container.clientWidth,
+            height: container.clientHeight,
+          },
+        }
+      : null;
   }, []);
+
+  const calculatePosition = useCallback(
+    (
+      container: ContainerSize,
+      canvas: CanvasSize,
+      scale: number,
+      position?: Pick<Transform, "x" | "y">,
+      center = false
+    ): Pick<Transform, "x" | "y"> => {
+      const scaledWidth = canvas.width * scale;
+      const scaledHeight = canvas.height * scale;
+
+      if (center) {
+        return {
+          x: (container.width - scaledWidth) / 2,
+          y: (container.height - scaledHeight) / 2,
+        };
+      }
+
+      const minX = container.width - scaledWidth;
+      const minY = container.height - scaledHeight;
+
+      return {
+        x: Math.min(0, Math.max(minX, position?.x ?? 0)),
+        y: Math.min(0, Math.max(minY, position?.y ?? 0)),
+      };
+    },
+    []
+  );
 
   const initializeTransform = useCallback(() => {
     const sizes = getCanvasAndContainer();
     if (!sizes) return;
-
-    const { canvas, container } = sizes;
 
     if (canvasRef.current) {
       canvasRef.current.width = CANVAS_DIMENSIONS.width;
       canvasRef.current.height = CANVAS_DIMENSIONS.height;
     }
 
-    const initialScale = calculateInitialScale(container, canvas);
-    const position = calculateCenteredPosition(container, canvas, initialScale);
-
-    setTransform({
-      scale: initialScale,
-      ...position,
-    });
-  }, [getCanvasAndContainer]);
+    const initialScale = 0.6;
+    const position = calculatePosition(
+      sizes.container,
+      sizes.canvas,
+      initialScale,
+      undefined,
+      true
+    );
+    setTransform({ scale: initialScale, ...position });
+  }, [getCanvasAndContainer, calculatePosition]);
 
   const updateTransform = useCallback(
     (newTransform: Partial<Transform>) => {
@@ -92,47 +84,25 @@ export const useCanvasTransform = (
         const sizes = getCanvasAndContainer();
         if (!sizes) return prev;
 
-        const { canvas, container } = sizes;
-        const next = { ...prev, ...newTransform };
-
-        next.scale = Math.min(
-          Math.max(next.scale, SCALE_LIMITS.min),
+        const scale = Math.min(
+          Math.max(newTransform.scale ?? prev.scale, SCALE_LIMITS.min),
           SCALE_LIMITS.max
         );
-
-        const boundedPosition = calculateBoundedPosition(
-          container,
-          canvas,
-          next.scale,
-          { x: next.x, y: next.y }
+        const position = calculatePosition(
+          sizes.container,
+          sizes.canvas,
+          scale,
+          {
+            x: newTransform.x ?? prev.x,
+            y: newTransform.y ?? prev.y,
+          }
         );
 
-        return { ...next, ...boundedPosition };
+        return { scale, ...position };
       });
     },
-    [getCanvasAndContainer]
+    [getCanvasAndContainer, calculatePosition]
   );
-
-  useEffect(() => {
-    const handleResize = () => {
-      const sizes = getCanvasAndContainer();
-      if (!sizes) return;
-
-      const { canvas, container } = sizes;
-      const minScale = calculateInitialScale(container, canvas);
-
-      if (transform.scale < minScale) {
-        const position = calculateCenteredPosition(container, canvas, minScale);
-        setTransform({
-          scale: minScale,
-          ...position,
-        });
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [transform.scale, getCanvasAndContainer]);
 
   const transformStyle = useMemo(
     () => ({
