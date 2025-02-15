@@ -7,20 +7,70 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
-const rooms = {};
+const roomPasswords = new Map();
 
 app.get("/", (req, res) => {
   res.send("<h1>Hello world</h1>");
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected");
+  const { roomId, name, password, color } = socket.handshake.query;
+  if (!roomId) {
+    socket.disconnect();
+    return;
+  }
+
+  const existingPassword = roomPasswords.get(roomId);
+  if (existingPassword) {
+    if (existingPassword !== password) {
+      socket.emit("error", { message: "Incorrect password" });
+      socket.disconnect();
+      return;
+    }
+  } else {
+    if (password) {
+      roomPasswords.set(roomId, password);
+    }
+  }
+
+  socket.join(roomId);
+
+  io.to(roomId).emit("user:joined", {
+    userId: socket.id,
+    roomId: roomId,
+    name: name,
+    color: color,
+  });
+
+  console.log(`User ${name} connected to room ${roomId}`);
+  console.log(
+    `Room ${roomId} has ${io.sockets.adapter.rooms.get(roomId)?.size} users`
+  );
+
+  socket.on("user:cursor-position", (data) => {
+    io.to(roomId).emit("user:cursor-position", data);
+  });
+
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    const room = io.sockets.adapter.rooms.get(roomId);
+
+    if (!room || room.size === 0) {
+      roomPasswords.delete(roomId);
+      console.log(`Room ${roomId} is now empty`);
+    } else {
+      io.to(roomId).emit("user:left", {
+        userId: socket.id,
+        roomId: roomId,
+        name: name,
+        color: color,
+      });
+    }
+
+    console.log(`User ${name} disconnected from room ${roomId}`);
   });
 });
 
