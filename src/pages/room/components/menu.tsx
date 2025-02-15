@@ -7,7 +7,6 @@ import selectionIcon from "@/assets/icons/selection.svg";
 import handIcon from "@/assets/icons/hand.svg";
 import { toolTypes } from "@/constants";
 import { useBoardStore } from "@/store/board.store";
-import { emitClearWhiteboard } from "@/socket";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/store/theme.store";
@@ -40,8 +39,6 @@ const IconButton = ({
 
   const handleClearCanvas = () => {
     setElements([]);
-
-    emitClearWhiteboard();
   };
 
   return (
