@@ -16,29 +16,11 @@ import { Sun } from "lucide-react";
 import TRFlag from "@/assets/tr.png";
 import ENFlag from "@/assets/en.png";
 
-const IconButton = ({
-  src,
-  type,
-  isEraser,
-}: {
-  src: string;
-  type: string;
-  isEraser: boolean;
-}) => {
-  const { tool, setTool, setElements } = useBoardStore();
+const IconButton = ({ src, type }: { src: string; type: string }) => {
+  const { tool, setTool } = useBoardStore();
 
   const handleToolChange = () => {
-    if (isEraser) {
-      handleClearCanvas();
-      setTool(null);
-      return;
-    }
-
-    setTool(type);
-  };
-
-  const handleClearCanvas = () => {
-    setElements([]);
+    setTool(tool === type ? null : type);
   };
 
   return (
@@ -103,17 +85,13 @@ const LangSwitcher = () => {
 const Menu = () => {
   return (
     <div className="z-10 left-2 top-1/2 -translate-y-1/2 absolute rounded-2xl flex flex-col flex-wrap items-center gap-2 bg-zinc-200 dark:bg-zinc-800 p-2 h-full max-h-fit">
-      <IconButton
-        src={selectionIcon}
-        type={toolTypes.SELECTION}
-        isEraser={false}
-      />
-      <IconButton src={handIcon} type={toolTypes.HAND} isEraser={false} />
-      <IconButton src={squareIcon} type={toolTypes.SQUARE} isEraser={false} />
-      <IconButton src={lineIcon} type={toolTypes.LINE} isEraser={false} />
-      <IconButton src={eraserIcon} type={toolTypes.ERASER} isEraser={true} />
-      <IconButton src={pencilIcon} type={toolTypes.PENCIL} isEraser={false} />
-      <IconButton src={textIcon} type={toolTypes.TEXT} isEraser={false} />
+      <IconButton src={selectionIcon} type={toolTypes.SELECTION} />
+      <IconButton src={handIcon} type={toolTypes.HAND} />
+      <IconButton src={squareIcon} type={toolTypes.SQUARE} />
+      <IconButton src={lineIcon} type={toolTypes.LINE} />
+      <IconButton src={eraserIcon} type={toolTypes.ERASER} />
+      <IconButton src={pencilIcon} type={toolTypes.PENCIL} />
+      <IconButton src={textIcon} type={toolTypes.TEXT} />
       <LangSwitcher />
       <ThemeSwitcher />
     </div>

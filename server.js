@@ -12,6 +12,7 @@ const io = new Server(server, {
 });
 
 const roomPasswords = new Map();
+const roomElements = new Map();
 
 app.get("/", (req, res) => {
   res.send("<h1>Hello world</h1>");
@@ -46,8 +47,35 @@ io.on("connection", (socket) => {
     color: color,
   });
 
+  const existingElements = roomElements.get(roomId);
+  if (existingElements && existingElements.size > 0) {
+    socket.emit("elements:sync", Array.from(existingElements.values()));
+  }
+
   socket.on("user:cursor-position", (data) => {
     io.to(roomId).emit("user:cursor-position", data);
+  });
+
+  socket.on("element:update", (element) => {
+    if (!element || !element.id) return;
+    let elements = roomElements.get(roomId);
+    if (!elements) {
+      elements = new Map();
+      roomElements.set(roomId, elements);
+    }
+    elements.set(element.id, element);
+    socket.to(roomId).emit("element:update", element);
+  });
+
+  socket.on("element:delete", ({ id }) => {
+    const elements = roomElements.get(roomId);
+    if (elements) elements.delete(id);
+    socket.to(roomId).emit("element:delete", { id });
+  });
+
+  socket.on("elements:clear", () => {
+    roomElements.set(roomId, new Map());
+    socket.to(roomId).emit("elements:clear");
   });
 
   socket.on("disconnect", () => {
@@ -55,6 +83,7 @@ io.on("connection", (socket) => {
 
     if (!room || room.size === 0) {
       roomPasswords.delete(roomId);
+      roomElements.delete(roomId);
     } else {
       io.to(roomId).emit("user:left", {
         userId: socket.id,

@@ -16,4 +16,10 @@ export const GRID_DIMENSIONS = {
 export const GRID_COLORS = {
   light: "#374151",
   dark: "#E5E7EB",
-} as const; 
+} as const;
+
+export const DRAW_DEFAULTS = {
+  strokeWidth: 6,
+  fontSize: 48,
+  hitThreshold: 16,
+} as const;

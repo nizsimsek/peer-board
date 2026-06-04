@@ -4,4 +4,5 @@ export {
   GRID_DIMENSIONS,
   GRID_COLORS,
   SCALE_LIMITS,
+  DRAW_DEFAULTS,
 } from "./canvas.ts";

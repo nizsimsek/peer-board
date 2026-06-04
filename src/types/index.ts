@@ -27,3 +27,34 @@ export interface UserEvent {
   x: number;
   y: number;
 }
+
+export type ElementType = "SQUARE" | "LINE" | "PENCIL" | "TEXT";
+
+interface BaseElement {
+  id: string;
+  type: ElementType;
+  color: string;
+}
+
+export interface ShapeElement extends BaseElement {
+  type: "SQUARE" | "LINE";
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface PencilElement extends BaseElement {
+  type: "PENCIL";
+  points: Point[];
+}
+
+export interface TextElement extends BaseElement {
+  type: "TEXT";
+  x: number;
+  y: number;
+  text: string;
+  fontSize: number;
+}
+
+export type BoardElement = ShapeElement | PencilElement | TextElement;

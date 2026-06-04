@@ -175,7 +175,7 @@ const Welcome = () => {
                   ? "Tasarım ve Geliştirme "
                   : "Design and Development by "}
                 <a
-                  href="https://nizamettinsimsek.com.tr"
+                  href="https://nizsimsek.dev"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

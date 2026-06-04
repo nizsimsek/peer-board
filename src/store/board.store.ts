@@ -1,18 +1,15 @@
 import { create } from "zustand";
+import { BoardElement } from "@/types";
 
 type Tool = string | null;
 
-interface Element {
-  id: string;
-  [key: string]: any;
-}
-
 interface BoardState {
   tool: Tool;
-  elements: Element[];
+  elements: BoardElement[];
   setTool: (tool: Tool) => void;
-  updateElement: (element: Element) => void;
-  setElements: (elements: Element[]) => void;
+  updateElement: (element: BoardElement) => void;
+  removeElement: (id: string) => void;
+  setElements: (elements: BoardElement[]) => void;
 }
 
 export const useBoardStore = create<BoardState>()((set) => ({
@@ -30,5 +27,9 @@ export const useBoardStore = create<BoardState>()((set) => ({
         return { elements: newElements };
       }
     }),
+  removeElement: (id) =>
+    set((state) => ({
+      elements: state.elements.filter((el) => el.id !== id),
+    })),
   setElements: (elements) => set({ elements }),
 }));

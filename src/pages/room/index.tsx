@@ -5,9 +5,10 @@ import { useParams, useNavigate, useSearchParams } from "react-router";
 import Menu from "./components/menu";
 import Canvas from "./components/canvas";
 import { useSocket } from "@/hooks/useSocket";
-import { UserEvent } from "@/types";
+import { UserEvent, BoardElement } from "@/types";
 import { useRandomColor } from "@/hooks/useRandomColor";
 import { useCursorStore } from "@/store/cursors.store";
+import { useBoardStore } from "@/store/board.store";
 
 const Room = () => {
   const { roomId } = useParams();
@@ -18,6 +19,7 @@ const Room = () => {
   const color = useRandomColor();
   const { updateCursorPosition, removeCursorPosition, clearCursors } =
     useCursorStore();
+  const { updateElement, removeElement, setElements } = useBoardStore();
 
   useEffect(() => {
     if (!roomId || !password || !name) {
@@ -74,12 +76,40 @@ const Room = () => {
       }
     });
 
+    socket.on("elements:sync", (elements: BoardElement[]) => {
+      setElements(elements);
+    });
+
+    socket.on("element:update", (element: BoardElement) => {
+      updateElement(element);
+    });
+
+    socket.on("element:delete", ({ id }: { id: string }) => {
+      removeElement(id);
+    });
+
+    socket.on("elements:clear", () => {
+      setElements([]);
+    });
+
     return () => {
       socket.off("user:joined");
       socket.off("user:left");
       socket.off("user:cursor-position");
+      socket.off("elements:sync");
+      socket.off("element:update");
+      socket.off("element:delete");
+      socket.off("elements:clear");
     };
-  }, [socket, updateCursorPosition, removeCursorPosition]);
+  }, [
+    socket,
+    updateCursorPosition,
+    removeCursorPosition,
+    clearCursors,
+    updateElement,
+    removeElement,
+    setElements,
+  ]);
 
   return (
     <div className="flex h-svh flex-col items-center justify-center bg-muted bg-zinc-200 dark:bg-zinc-800 p-2">
