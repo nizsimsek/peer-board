@@ -13,7 +13,7 @@ export const useSocket = ({ roomId, password, name, color }: SocketProps) => {
   const [isConnected, setIsConnected] = useState(false);
 
   const connect = useCallback(() => {
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io("https://peer-board-api.nizsimsek.dev", {
       query: { roomId, password, name, color },
       reconnection: true,
       reconnectionAttempts: 5,
